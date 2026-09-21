@@ -146,6 +146,30 @@ function switchTab(tab) {
   $("register-form").hidden = tab !== "register";
 }
 
+// Traduce los mensajes de error de Supabase al español
+function traducirError(e) {
+  const msg = (e && e.message) || "";
+  const t = (msg + " " + ((e && e.code) || "")).toLowerCase();
+  if (t.includes("rate limit") || t.includes("too many requests") || t.includes("over_email_send_rate_limit"))
+    return "Demasiados intentos. Espera unos minutos y vuelve a intentarlo.";
+  if (t.includes("already registered") || t.includes("already been registered") || t.includes("user_already_exists"))
+    return "Ya existe una cuenta con este correo.";
+  if (t.includes("invalid login credentials") || t.includes("invalid credentials"))
+    return "Correo o contraseña incorrectos.";
+  if (t.includes("email not confirmed") || t.includes("email_not_confirmed") || t.includes("unconfirmed_email"))
+    return "Debes confirmar tu correo para iniciar sesión.";
+  if (t.includes("invalid email") || t.includes("unable to validate email"))
+    return "El correo ingresado no es válido.";
+  if (t.includes("at least 6") || t.includes("minimum of 6") || t.includes("weak password"))
+    return "La contraseña debe tener al menos 6 caracteres.";
+  if (t.includes("user not found") || t.includes("user_not_found"))
+    return "No encontramos una cuenta con ese correo.";
+  if (t.includes("session") || t.includes("invalid token") || t.includes("expired"))
+    return "Tu sesión expiró. Inicia sesión de nuevo.";
+  if (!msg) return "Ocurrió un error inesperado.";
+  return "Hubo un problema: " + msg;
+}
+
 async function onLogin(e) {
   e.preventDefault();
   const email = $("login-email").value.trim();
@@ -154,7 +178,7 @@ async function onLogin(e) {
 
   if (SUPABASE_CONFIGURADO) {
     const { error } = await sbClient.auth.signInWithPassword({ email, password: pass });
-    if (error) { errBox.hidden = false; errBox.textContent = error.message; return; }
+    if (error) { errBox.hidden = false; errBox.textContent = traducirError(error); return; }
     return;
   }
   const r = await demoLogin(email, pass);
@@ -179,7 +203,7 @@ async function onRegister(e) {
       password: pass,
       options: { data: { nombre, role: getRole(email) } },
     });
-    if (error) { errBox.hidden = false; errBox.textContent = error.message; return; }
+    if (error) { errBox.hidden = false; errBox.textContent = traducirError(error); return; }
     toast("Cuenta creada. Revisa tu correo para confirmarla ✉️");
     switchTab("login");
     return;
@@ -443,7 +467,8 @@ async function deleteMember(uid) {
       toast("Miembro eliminado 🗑️");
       go(null, "admin");
     } catch (e) {
-      toast("Error de conexión: " + e.message, true);
+      const detalle = /failed to fetch|networkerror/i.test(e.message) ? "sin conexión con el servidor" : e.message;
+      toast("Error de conexión: " + detalle, true);
     }
     return;
   }
