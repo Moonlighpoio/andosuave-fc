@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Miembro del club de fútbol" />
+  <title>AndoSuave Fc</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="logo.jpg" />
+</head>
+<body>
+
+  <!-- ======================= LANDING (público) ======================= -->
+  <div id="landing-view" class="landing-view">
+    <header class="landing-header">
+      <div class="landing-header-inner">
+        <span class="app-escudo" id="landing-header-escudo">⚽</span>
+        <span class="landing-logo" id="landing-logo">Club</span>
+        <button class="btn btn-secondary btn-sm" onclick="showAuth()">Iniciar sesión</button>
+      </div>
+    </header>
+
+    <section class="landing-hero">
+      <span class="landing-escudo" id="landing-escudo">⚽</span>
+      <h1 id="landing-title">AndoSuave FC</h1>
+      <p class="landing-slogan" id="landing-slogan"></p>
+      <p class="landing-desc" id="landing-desc"></p>
+      <button class="btn btn-primary btn-lg" onclick="scrollToAuth()">Ingresar a la zona de miembros ↓</button>
+      <p class="landing-note">🔒 Zona exclusiva para miembros activos del club.</p>
+      <a class="btn btn-secondary landing-ig" id="landing-ig" href="#" target="_blank" rel="noopener">📸 Síguenos en Instagram</a>
+    </section>
+
+    <section class="landing-cards" id="landing-cards">
+      <div class="landing-card"><div class="icon">🗓️</div><h4>Partidos fijos</h4><p>Lunes en Club Cordillera y jueves en DepartaSport, siempre a las 20:00.</p></div>
+      <div class="landing-card"><div class="icon">🤝</div><h4>Comunidad</h4><p>Grupo de amigos: fútbol, respeto y la mejor disposición.</p></div>
+      <div class="landing-card"><div class="icon">📋</div><h4>Reglamento</h4><p>Cuota, bajas, atrasos, uniforme y más. Todo claro en la zona de miembros.</p></div>
+    </section>
+
+    <footer class="landing-footer">
+      <p id="landing-footer-text">© 2026 Club · Zona de miembros</p>
+    </footer>
+  </div>
+
+  <!-- ======================= AUTH ======================= -->
+  <div id="auth-view" class="auth-view" hidden>
+    <div class="auth-card">
+      <button class="btn btn-ghost btn-sm auth-back" onclick="showLanding()">← Volver</button>
+      <div class="auth-brand">
+        <span class="auth-escudo" id="auth-escudo">⚽</span>
+        <h1 id="auth-club-name">Club de Fútbol</h1>
+        <p id="auth-slogan"></p>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tab-login" class="auth-tab active" onclick="switchTab('login')">Iniciar sesión</button>
+        <button id="tab-register" class="auth-tab" onclick="switchTab('register')">Registrarme</button>
+      </div>
+
+      <!-- Login -->
+      <form id="login-form" class="auth-form">
+        <label for="login-email">Correo</label>
+        <input type="email" id="login-email" placeholder="tucorreo@ejemplo.com" required autocomplete="email" />
+        <label for="login-pass">Contraseña</label>
+        <input type="password" id="login-pass" placeholder="Tu contraseña" required autocomplete="current-password" />
+        <p id="login-error" class="form-error" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      </form>
+
+      <!-- Registro -->
+      <form id="register-form" class="auth-form" hidden>
+        <label for="reg-name">Nombre completo</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre" required />
+        <label for="reg-email">Correo personal</label>
+        <input type="email" id="reg-email" placeholder="tucorreo@ejemplo.com" required autocomplete="email" />
+        <label for="reg-pass">Crea tu contraseña (mín. 6 caracteres)</label>
+        <input type="password" id="reg-pass" placeholder="••••••••" required minlength="6" autocomplete="new-password" />
+        <label for="reg-pass2">Repite tu contraseña</label>
+        <input type="password" id="reg-pass2" placeholder="••••••••" required minlength="6" autocomplete="new-password" />
+        <p id="register-error" class="form-error" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block">Crear mi cuenta</button>
+        <p class="auth-note">
+          Tu cuenta queda sujeta a las normas del club. El administrador puede darte de baja si no las respetas.
+        </p>
+      </form>
+
+      <!-- Botón demo -->
+      <div id="demo-box" class="demo-box">
+        <p>🔧 <strong>MODO DEMO</strong></p>
+        <p>Sin base de datos todavía. Prueba con una cuenta de demostración:</p>
+        <button class="btn btn-secondary btn-block" id="btn-demo-admin">Entrar como administrador de demostración</button>
+        <button class="btn btn-secondary btn-block" id="btn-demo-miembro">Entrar como miembro de demostración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= APP ======================= -->
+  <div id="app-view" class="app-view" hidden>
+    <header class="app-header">
+      <div class="app-header-inner">
+        <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <span class="app-escudo" id="app-header-escudo">⚽</span>
+        <span class="app-title" id="app-header-title">Club</span>
+        <nav class="app-nav" id="app-nav">
+          <a href="#" data-route="inicio" class="active" onclick="go(null,'inicio')">Inicio</a>
+          <a href="#" data-route="normas" onclick="go(null,'normas')">Normas</a>
+          <a href="#" data-route="horarios" onclick="go(null,'horarios')">Horarios</a>
+          <a href="#" data-route="chat" onclick="go(null,'chat')">Chat</a>
+          <a href="#" data-route="admin" id="nav-admin" hidden onclick="go(null,'admin')">Admin</a>
+        </nav>
+        <div class="app-user">
+          <span id="user-badge"></span>
+          <button class="btn btn-ghost" onclick="logout()">Salir</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main" id="view-container"></main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
