@@ -29,10 +29,7 @@ Deno.serve(async (req) => {
     if (!token) return json(401, { error: "No hay sesión activa." });
 
     // 2) Verificar el token y obtener el usuario
-    const client = createClient(supabaseUrl, token, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { data: { user }, error: userError } = await client.auth.getUser(token);
+    const { data: { user }, error: userError } = await admin.auth.getUser(token);
     if (userError || !user) return json(401, { error: "Sesión inválida." });
 
     // 3) ¿Es administrador?
