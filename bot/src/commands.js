@@ -3,6 +3,7 @@ const multas = require("./multas");
 const listas = require("./listas");
 const chat = require("./chat");
 const convocatoria = require("./convocatoria");
+const harvest = require("./harvest");
 const { Site } = require("./site");
 
 function extractText(msg) {
@@ -29,9 +30,13 @@ function renderHorarios(list) {
 async function handle(box, msg) {
   const { config } = box;
   const text = extractText(msg);
-  if (!text.startsWith(config.prefix)) return false;
-
   const jid = msg.key.remoteJid;
+
+  if (!text.startsWith(config.prefix)) {
+    if (isGroup(jid) && config.groupId && jid === config.groupId) await harvest.capture(box, text);
+    return false;
+  }
+
   const group = isGroup(jid);
   const participant = msg.key.participant || jid;
   const senderPhone = phoneFromJid(participant);

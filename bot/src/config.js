@@ -35,6 +35,8 @@ module.exports = {
     listaMinute: Number(process.env.REMINDER_LISTA_MINUTE || 30),
     convocaHour: Number(process.env.REMINDER_CONVOCA_HOUR || 21),
     convocaMinute: Number(process.env.REMINDER_CONVOCA_MINUTE || 1),
+    finalHour: Number(process.env.REMINDER_FINAL_HOUR || 23),
+    finalMinute: Number(process.env.REMINDER_FINAL_MINUTE || 0),
   },
   defaults: {
     horarios: DEFAULT_HORARIOS,

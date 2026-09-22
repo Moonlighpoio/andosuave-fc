@@ -29,9 +29,10 @@ function buildListaMessage(box, accion) {
   if (!match) return null;
   const p = listas.get(box.store.get(), match.fecha);
   const nombres = p?.jugadores?.map((j, i) => `${i + 1}. ${j.nombre}`) || [];
+  const banca = p?.banca?.length ? "\nBanca: " + p.banca.join(", ") : "";
   const cuerpo =
     `${match.tipo} ${match.dia} (${match.fecha}) · ${match.hora}\n📍 ${match.lugar}\n\n` +
-    (nombres.length ? "Anotados:\n" + nombres.join("\n") : "Aún no hay anotados. ¡Anótate con *!anotar*!");
+    (nombres.length ? "Anotados:\n" + nombres.join("\n") + banca : "Aún no hay anotados. ¡Anótate con *!anotar*!");
   return accion + "\n\n" + cuerpo;
 }
 
@@ -59,7 +60,7 @@ function closetLista(box) {
 function start(box) {
   if (tasks.length) return;
 
-  const { multasMinute, multasHour, listaMinute, listaHour, convocaMinute, convocaHour } = box.config.reminders;
+  const { multasMinute, multasHour, listaMinute, listaHour, convocaMinute, convocaHour, finalMinute, finalHour } = box.config.reminders;
   const zona = { timezone: box.config.timezone };
 
   const add = (min, hora, day, fn) => {
@@ -77,6 +78,7 @@ function start(box) {
   add(30, 19, "1,4", (b) => sendToGroup(b, buildListaMessage(b, "🏟️ *Partido hoy a las 20:00*")));
 
   add(convocaMinute, convocaHour, "1,4", (b) => enviarConvocatoria(b));
+  add(finalMinute, finalHour, "1,4", (b) => enviarListaFinal(b));
 
   console.log("⏰ Recordatorios activados (" + box.config.timezone + ").");
 }
@@ -99,10 +101,25 @@ function enviarConvocatoria(box) {
     mapa: entry.mapa,
     cerrada: false,
     jugadores: [],
+    banca: [],
   };
   box.store.save();
   sendToGroup(box, convocatoria.build(entry, fecha));
   console.log(`📣 Convocatoria enviada: ${entry.dia} ${convocatoria.formatDDMM(fecha)}`);
+}
+
+function enviarListaFinal(box) {
+  const hoy = listas.partidoDeHoy(box.store.get());
+  if (!hoy) return;
+  const totales = (hoy.jugadores || []).length + (hoy.banca || []).length;
+  if (!totales) return;
+  const { lineas } = listas.listar(hoy);
+  sendToGroup(
+    box,
+    `🌙 *Lista final del día* — ${hoy.dia} ${String(hoy.fecha).slice(5).replace("-", "/")} · ${hoy.hora}\n\n` +
+      (lineas.length ? lineas.join("\n") : "Sin anotados.")
+  );
+  console.log(`🌙 Lista final enviada: ${totales} jugador(es).`);
 }
 
 function stop() {
