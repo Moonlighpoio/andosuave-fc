@@ -6,6 +6,7 @@ const CLUB = {
   nombre: "AndoSuave FC",
   escudo: "⚽",
   logo: "logo.jpg",
+  est: "EST. 2026",
   slogan: "Grupo de amigos que juega fútbol — se prioriza la diversión y la buena onda.",
   presentacion:
     "AndoSuave FC es un grupo de amigos que juega fútbol por pasión y comunidad. " +
@@ -22,12 +23,39 @@ const CLUB = {
   },
   // ÚNICO correo de administrador. Solo este podrá entrar al panel de gestión.
   adminEmail: "rbarriga.pino@gmail.com",
+  // Enlace opcional al grupo de WhatsApp del club (avisos de precios y cambios).
+  whatsapp: "",
 };
+
+// Plantel inscrito del club (así se muestra en la sección Miembros).
+// Al recibir el listado real, reemplaza o completa estas fichas.
+// Campos: nombre, email, dorsal (número), posicion (texto), capitan (true/false), rol ("admin"|"member").
+const PLANTEL = [
+  { nombre: "Rodrigo Barriga", email: "rbarriga.pino@gmail.com", dorsal: 8, posicion: "Volante mixto", capitan: false, rol: "admin" },
+  { nombre: "Benjamín Barriga", email: "benja.barriga@gmail.com", dorsal: 5, posicion: "Central", capitan: true, rol: "member" },
+  { nombre: "Ignacio Bilbao", email: "ignacioandresmb10@gmail.com", dorsal: 10, posicion: "Mediapunta", capitan: false, rol: "member" },
+  { nombre: "Renato Barriga", email: "renato.barriga@gmail.com", dorsal: 7, posicion: "Extremo", capitan: false, rol: "member" },
+  { nombre: "Miembro de ejemplo", email: "demo@miembro.cl", dorsal: 21, posicion: "Arquero", capitan: false, rol: "member" },
+];
 
 // Días y horarios de los partidos
 const HORARIOS = [
-  { dia: "Lunes", tipo: "Partido", hora: "20:00 – 21:00", lugar: "Club Cordillera · La Florida" },
-  { dia: "Jueves", tipo: "Partido", hora: "20:00 – 21:00", lugar: "DepartaSport" },
+  {
+    dia: "Lunes",
+    tipo: "Partido",
+    hora: "20:00 – 21:00",
+    lugar: "Club Cordillera · La Florida",
+    direccion: "Av. Departamental 3837, La Florida, Santiago",
+    mapa: "https://www.google.com/maps/search/?api=1&query=Av.%20Departamental%203837%2C%20La%20Florida%2C%20Santiago%2C%20Chile",
+  },
+  {
+    dia: "Jueves",
+    tipo: "Partido",
+    hora: "20:00 – 21:00",
+    lugar: "DepartaSport",
+    direccion: "Av. Departamental 1950, Pedro Aguirre Cerda, Santiago",
+    mapa: "https://www.google.com/maps/search/?api=1&query=Av.%20Departamental%201950%2C%20Pedro%20Aguirre%20Cerda%2C%20Santiago%2C%20Chile",
+  },
 ];
 
 // Cuota mensual
@@ -42,6 +70,14 @@ const CUOTA = {
   pago:
     "Tesorero: Ignacio Bilbao · Cuenta Tenpo (Cuenta Vista) N° 111120388118 · " +
     "Correo ignacioandresmb10@gmail.com",
+};
+
+// Precio de la cancha por partido (editable; los cambios se avisan en el grupo de WhatsApp)
+const CANCHA = {
+  monto: "$3.000",
+  unidad: "por partido",
+  descripcion: "Valor que se paga por el arriendo de la cancha en cada jornada (lunes y jueves).",
+  aviso: "Este valor puede cambiar con el tiempo. Cualquier modificación será notificada en el grupo de WhatsApp del club.",
 };
 
 // ============================================================
@@ -161,7 +197,9 @@ const PANEL_ADMIN = {
 // CHAT INTELIGENTE (basado en reglas)
 // ============================================================
 function resumenHorarios() {
-  return HORARIOS.map((h) => `• ${h.tipo} ${h.dia} a las ${h.hora} en ${h.lugar}`).join("\n");
+  return HORARIOS.map((h) =>
+    `• ${h.tipo} ${h.dia} a las ${h.hora} en ${h.lugar}${h.direccion ? " (" + h.direccion + ")" : ""}`
+  ).join("\n");
 }
 
 const CHAT_REGLAS = [
@@ -194,7 +232,7 @@ const CHAT_REGLAS = [
   {
     palabras: ["cancha", "arriendo", "arrienda", "departasport", "cordillera", "$3.000 de cancha"],
     respuestas: [
-      "El arriendo de cancha se paga por separado el mismo día del partido hasta las 23:59. No pagar a tiempo tiene multa de $3.000; si tampoco se paga al día siguiente, 2 fechas sin jugar. 📍",
+      `El arriendo de cancha cuesta ${CANCHA.monto} por partido. El valor puede cambiar con el tiempo y se avisa en el grupo de WhatsApp del club. 📍 El pago se hace por separado el mismo día del partido hasta las 23:59. No pagar a tiempo tiene multa de $3.000; si tampoco se paga al día siguiente, 2 fechas sin jugar.`,
     ],
   },
   {
@@ -226,6 +264,12 @@ const CHAT_REGLAS = [
     palabras: ["cuenta", "tenpo", "transferencia", "bilbao", "ignacio", "banco", "número", "correo", "pagar a quién", "a quién pago"],
     respuestas: [
       "Los pagos van al tesorero Ignacio Bilbao · Banco prepago Tenpo · Cuenta Vista N° 111120388118 · Correo ignacioandresmb10@gmail.com 🏦",
+    ],
+  },
+  {
+    palabras: ["miembros", "miembro", "inscritos", "inscrito", "inscrita", "inscritas", "registrados", "registrado", "plantel", "quién está", "quien esta", "quiénes están", "quienes estan", "jugadores son"],
+    respuestas: [
+      "Puedes ver a todos los inscritos en la sección 👥 Miembros del club. Ahí aparece cada integrante con su rol y fecha de ingreso. Todos sumamos buena onda dentro y fuera de la cancha. ⚽🤝",
     ],
   },
   {

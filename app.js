@@ -103,7 +103,37 @@ function ensureDemoAdmin() {
 }
 
 function ensureDemoMember() {
-  setSession({ nombre: "Miembro de ejemplo", email: "demo@miembro.cl", role: "member" });
+  const miembro = typeof PLANTEL !== "undefined" && PLANTEL.find((m) => m.rol !== "admin") || null;
+  setSession({
+    nombre: miembro ? miembro.nombre : "Miembro de ejemplo",
+    email: miembro ? miembro.email : "demo@miembro.cl",
+    role: "member",
+  });
+}
+
+// Sincroniza el plantel del config con las cuentas locales del modo demo.
+async function seedPlantel() {
+  if (SUPABASE_CONFIGURADO) return;
+  if (typeof PLANTEL === "undefined" || !Array.isArray(PLANTEL)) return;
+  const users = getUsers();
+  let changed = false;
+  for (const m of PLANTEL) {
+    const email = m.email.toLowerCase();
+    if (users.some((u) => u.email.toLowerCase() === email)) continue;
+    users.push({
+      id: "u_" + email.replace(/[^a-z0-9]/g, "_"),
+      nombre: m.nombre,
+      email: m.email,
+      pass: await hashPass(MEMBER_PASS_DEMO),
+      role: m.rol || "member",
+      dorsal: m.dorsal,
+      posicion: m.posicion,
+      capitan: Boolean(m.capitan),
+      createdAt: new Date().toISOString(),
+    });
+    changed = true;
+  }
+  if (changed) saveUsers(users);
 }
 
 // ============================================================
@@ -120,7 +150,7 @@ if (SUPABASE_CONFIGURADO) {
         role: getRole(session.user.email),
       });
     }
-    refresh();
+seedPlantel().then(() => refresh());
   });
 }
 
@@ -247,10 +277,10 @@ function renderInicio(ses) {
   const esAdmin = ses.role === "admin";
   return `
   <div class="hero-club">
-    <span class="big">${CLUB.escudo}</span>
-    <h1 class="page-title">¡Hola, <span class="welcome-name">${esc(ses.nombre.split(" ")[0])}</span>!</h1>
+    <span class="hero-crest"><img class="hero-img" src="${esc(CLUB.logo)}" alt="Escudo de ${esc(CLUB.nombre)}"/></span>
+    <h1 class="page-title-welcome">¡Hola, <span class="welcome-name">${esc(ses.nombre.split(" ")[0])}</span>!</h1>
     <span class="role-tag">${esAdmin ? "Administrador del club" : "Miembro"}</span>
-    <p class="page-sub">Bienvenido a la zona de miembros de <strong>${CLUB.nombre}</strong>. Aquí están las normas, los horarios y el asistente del club.</p>
+    <p class="page-sub">Bienvenido a la zona de miembros de <strong>${esc(CLUB.nombre)}</strong>. Aquí están las normas, los horarios y el asistente del club.</p>
   </div>
   <div class="quick-grid">
     <div class="quick-card" onclick="go(event,'normas')">
@@ -264,6 +294,10 @@ function renderInicio(ses) {
     <div class="quick-card" onclick="go(event,'chat')">
       <div class="icon">💬</div>
       <h4>Chat del club</h4><p>Pregúntale al asistente por horarios, cuotas y más.</p>
+    </div>
+    <div class="quick-card" onclick="go(event,'miembros')">
+      <div class="icon">👥</div>
+      <h4>Miembros</h4><p>Conoce quiénes ya están inscritos en el club.</p>
     </div>
     ${esAdmin ? `<div class="quick-card" onclick="go(event,'admin')"><div class="icon">🛡️</div><h4>Panel Admin</h4><p>Gestiona los miembros registrados.</p></div>` : ""}
   </div>`;
@@ -292,7 +326,7 @@ function renderNormas() {
     </div>`).join("");
 
   return `
-  <h1 class="page-title">📋 Reglamento del club</h1>
+  <h1 class="page-title"><span class="title-ico">📋</span> Reglamento del club</h1>
   <p class="page-sub">Reglamento oficial de ${esc(CLUB.nombre)}. El incumplimiento puede significar multas o la baja del club.</p>
   ${grupos}
   <div class="card cuota-box">
@@ -302,7 +336,7 @@ function renderNormas() {
 
 function renderHorarios() {
   return `
-  <h1 class="page-title">🗓️ Horarios</h1>
+  <h1 class="page-title"><span class="title-ico">🗓️</span> Horarios</h1>
   <p class="page-sub">Actividades semanales del ${esc(CLUB.nombre)}.</p>
   <div class="sched">
     ${HORARIOS.map((h) => `
@@ -310,28 +344,96 @@ function renderHorarios() {
         <div class="tipo">${esc(h.tipo)}</div>
         <div class="dia">${esc(h.dia)} · ${esc(h.hora)}</div>
         <div class="detalle">📍 ${esc(h.lugar)}</div>
+        ${h.direccion ? `<div class="dir">${esc(h.direccion)}</div>` : ""}
+        ${h.mapa ? `<a class="map-btn" href="${esc(h.mapa)}" target="_blank" rel="noopener">🗺️ Cómo llegar</a>` : ""}
       </div>`).join("")}
   </div>
-  <div class="cuota-box">
-    <div class="etiqueta" style="color:var(--text-muted);font-size:.85rem;">CUOTA MENSUAL</div>
-    <div class="monto">${esc(CUOTA.monto)}</div>
-    <p>${esc(CUOTA.descripcion)}</p>
-    <p style="color:var(--text-muted);font-size:.85rem;margin-top:.4rem;">${esc(CUOTA.cuenta)}</p>
+  <div class="prices-grid">
+    <div class="cuota-box cancha">
+      <div class="etiqueta" style="color:var(--text-muted);font-size:.85rem;">PRECIO DE CANCHA</div>
+      <div class="monto">${esc(CANCHA.monto)}</div>
+      <p style="color:var(--text-muted);font-size:.85rem;">${esc(CANCHA.unidad)}</p>
+      <p>${esc(CANCHA.descripcion)}</p>
+      <p class="prices-aviso">🔔 ${esc(CANCHA.aviso)}${CLUB.whatsapp ? ` <a href="${esc(CLUB.whatsapp)}" target="_blank" rel="noopener">Abrir grupo de WhatsApp</a>` : ""}</p>
+    </div>
+    <div class="cuota-box">
+      <div class="etiqueta" style="color:var(--text-muted);font-size:.85rem;">CUOTA MENSUAL</div>
+      <div class="monto">${esc(CUOTA.monto)}</div>
+      <p>${esc(CUOTA.descripcion)}</p>
+      <p style="color:var(--text-muted);font-size:.85rem;margin-top:.4rem;">${esc(CUOTA.pago)}</p>
+    </div>
   </div>`;
 }
 
 function renderChat() {
   return `
-  <h1 class="page-title">💬 Chat del club</h1>
+  <h1 class="page-title"><span class="title-ico">💬</span> Chat del club</h1>
   <p class="page-sub">Asistente del club: responde dudas sobre horarios, cuota, normas y más.</p>
   <div class="chat-wrap">
     <div class="chat-msgs" id="chat-msgs"></div>
     <form class="chat-input-row" id="chat-form">
       <input type="text" id="chat-input" placeholder="Ej: ¿cuándo jugamos?" autocomplete="off" />
-      <button type="submit" class="btn btn-primary">Enviar</button>
+      <button type="submit" class="btn btn-primary" aria-label="Enviar mensaje al chat">Enviar</button>
     </form>
   </div>
   <p class="chat-hint">Pregunta por: horarios, cuota, normas, redes, capitán…</p>`;
+}
+
+async function renderMiembros() {
+  let users;
+  try {
+    users = await listMembers();
+  } catch (err) {
+    toast("Error al cargar miembros: " + err.message, true);
+    return "";
+  }
+  if (!users) users = [];
+
+  const fmt = (d) => {
+    const t = new Date(d);
+    return isNaN(t) ? "-" : t.toLocaleDateString("es-CL");
+  };
+  const inits = (n) => String(n || "?").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+
+  const ordenados = [...users].sort((a, b) => {
+    if ((a.role === "admin") !== (b.role === "admin")) return a.role === "admin" ? -1 : 1;
+    if (Boolean(a.capitan) !== Boolean(b.capitan)) return a.capitan ? -1 : 1;
+    return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0);
+  });
+
+  const admins = users.filter((u) => u.role === "admin").length;
+  const capitanes = users.filter((u) => u.capitan).length;
+
+  const card = (u) => {
+    const dorsal = u.dorsal ?? "";
+    const pos = u.posicion || u.position || "";
+    const tag = u.capitan ? "capitan" : u.role;
+    const label = u.capitan ? "⭐ Capitán" : u.role === "admin" ? "Admin" : "Miembro";
+    const num = dorsal !== "" ? esc(dorsal) : esc(inits(u.nombre || u.name));
+    return `
+      <div class="member-card${u.capitan ? " capitan" : ""}">
+        <div class="member-jersey">${num}</div>
+        ${pos ? `<span class="member-pos">${esc(pos)}</span>` : ""}
+        <span class="user-role ${tag}">${label}</span>
+        <div class="member-name">${esc(u.nombre || u.name)}</div>
+        <span class="member-mail">${esc(u.email)}</span>
+        <span class="member-since">desde ${fmt(u.created_at || u.createdAt)}</span>
+      </div>`;
+  };
+
+  const cards = ordenados.map(card).join("");
+
+  return `
+  <h1 class="page-title"><span class="title-ico">👥</span> Miembros del club</h1>
+  <p class="page-sub">Estos son los inscritos de ${esc(CLUB.nombre)}. Sumamos buena onda dentro y fuera de la cancha.</p>
+  <div class="stat-grid">
+    <div class="stat"><div class="valor">${users.length}</div><div class="etiqueta">Inscritos</div></div>
+    <div class="stat"><div class="valor">${admins}</div><div class="etiqueta">Directiva</div></div>
+    <div class="stat"><div class="valor">${capitanes}</div><div class="etiqueta">Capitán(es)</div></div>
+  </div>
+  ${users.length
+    ? `<div class="member-grid">${cards}</div>`
+    : `<p class="empty">Aún no hay miembros registrados.</p>`}`;
 }
 
 async function renderAdmin() {
@@ -350,8 +452,10 @@ async function renderAdmin() {
     <tr>
       <td><strong>${esc(u.nombre)}</strong></td>
       <td>${esc(u.email)}</td>
-      <td><span class="user-role ${u.role}">${u.role === "admin" ? "Admin" : "Miembro"}</span></td>
-      <td>${new Date(u.created_at).toLocaleDateString("es-CL")}</td>
+      <td>${u.dorsal ?? "-"}</td>
+      <td>${esc(u.posicion || u.position || "-")}</td>
+      <td><span class="user-role ${u.capitan ? "capitan" : u.role}">${u.capitan ? "⭐ Capitán" : u.role === "admin" ? "Admin" : "Miembro"}</span></td>
+      <td>${new Date(u.created_at || u.createdAt).toLocaleDateString("es-CL")}</td>
       <td style="text-align:right;">
         ${u.role === "admin"
           ? `<span style="color:var(--text-muted);font-size:.78rem;">No se puede eliminar</span>`
@@ -360,7 +464,7 @@ async function renderAdmin() {
     </tr>`).join("");
 
   return `
-  <h1 class="page-title">🛡️ Panel de administración</h1>
+  <h1 class="page-title"><span class="title-ico">🛡️</span> Panel de administración</h1>
   <p class="page-sub">${esc(PANEL_ADMIN.descripcion)}</p>
   <div class="stat-grid">
     <div class="stat"><div class="valor">${users.length}</div><div class="etiqueta">Total</div></div>
@@ -371,7 +475,7 @@ async function renderAdmin() {
     ${users.length
       ? `<div class="admin-table-wrap">
           <table class="admin-table">
-          <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Registro</th><th></th></tr></thead>
+          <thead><tr><th>Nombre</th><th>Correo</th><th>Dorsal</th><th>Posición</th><th>Rol</th><th>Registro</th><th></th></tr></thead>
           <tbody>${rows}</tbody>
         </table></div>`
       : `<p class="empty">Aún no hay miembros registrados.</p>`}
@@ -400,6 +504,9 @@ function go(event, route) {
     if (ses.role !== "admin") { toast("No tienes permisos de administrador", true); return; }
     container.innerHTML = '<p class="page-sub">Cargando miembros…</p>';
     renderAdmin().then((html) => { container.innerHTML = html; });
+  } else if (route === "miembros") {
+    container.innerHTML = '<p class="page-sub">Cargando miembros…</p>';
+    renderMiembros().then((html) => { container.innerHTML = html; });
   } else container.innerHTML = renderInicio(ses);
 }
 
@@ -500,6 +607,8 @@ function refresh() {
     app.hidden = true;
 
     $("landing-logo").textContent = CLUB.nombre;
+    $("landing-logo").dataset.est = CLUB.est;
+    $("landing-kicker").textContent = CLUB.est + " · FÚTBOL DE AMIGOS";
     setEscudo($("landing-header-escudo"));
     setEscudo($("landing-escudo"));
     $("landing-title").textContent = CLUB.nombre;
@@ -510,6 +619,7 @@ function refresh() {
     $("landing-footer-text").textContent = `© ${new Date().getFullYear()} ${CLUB.nombre} · Zona de miembros`;
 
     $("auth-club-name").textContent = CLUB.nombre;
+    $("auth-kicker").textContent = CLUB.est;
     $("auth-slogan").textContent = CLUB.slogan;
     setEscudo($("auth-escudo"));
     $("demo-box").hidden = SUPABASE_CONFIGURADO;

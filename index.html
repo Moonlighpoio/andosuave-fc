@@ -3,25 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Miembro del club de fútbol" />
-  <title>AndoSuave Fc</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="description" content="AndoSuave FC — Club de fútbol de amigos. Horarios, reglamento y zona de miembros." />
+  <meta name="theme-color" content="#050b07" />
+  <meta property="og:title" content="AndoSuave FC" />
+  <meta property="og:description" content="Grupo de amigos que juega fútbol. Horarios, reglamento y zona de miembros." />
+  <meta property="og:image" content="logo.jpg" />
+  <meta property="og:type" content="website" />
+  <title>AndoSuave FC · Zona de miembros</title>
   <link rel="icon" href="logo.jpg" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
+
+  <div class="watermark" aria-hidden="true"></div>
 
   <!-- ======================= LANDING (público) ======================= -->
   <div id="landing-view" class="landing-view">
     <header class="landing-header">
       <div class="landing-header-inner">
         <span class="app-escudo" id="landing-header-escudo">⚽</span>
-        <span class="landing-logo" id="landing-logo">Club</span>
+        <span class="landing-logo" id="landing-logo" data-est="EST. 2026">AndoSuave FC</span>
         <button class="btn btn-secondary btn-sm" onclick="showAuth()">Iniciar sesión</button>
       </div>
     </header>
 
     <section class="landing-hero">
       <span class="landing-escudo" id="landing-escudo">⚽</span>
+      <p class="landing-kicker" id="landing-kicker">EST. 2026 · FÚTBOL DE AMIGOS</p>
       <h1 id="landing-title">AndoSuave FC</h1>
       <p class="landing-slogan" id="landing-slogan"></p>
       <p class="landing-desc" id="landing-desc"></p>
@@ -48,6 +59,7 @@
       <div class="auth-brand">
         <span class="auth-escudo" id="auth-escudo">⚽</span>
         <h1 id="auth-club-name">Club de Fútbol</h1>
+        <p class="auth-kicker" id="auth-kicker">EST. 2026</p>
         <p id="auth-slogan"></p>
       </div>
 
@@ -103,11 +115,12 @@
         <span class="app-escudo" id="app-header-escudo">⚽</span>
         <span class="app-title" id="app-header-title">Club</span>
         <nav class="app-nav" id="app-nav">
-          <a href="#" data-route="inicio" class="active" onclick="go(null,'inicio')">Inicio</a>
-          <a href="#" data-route="normas" onclick="go(null,'normas')">Normas</a>
-          <a href="#" data-route="horarios" onclick="go(null,'horarios')">Horarios</a>
-          <a href="#" data-route="chat" onclick="go(null,'chat')">Chat</a>
-          <a href="#" data-route="admin" id="nav-admin" hidden onclick="go(null,'admin')">Admin</a>
+          <a href="#" data-route="inicio" class="active" onclick="go(null,'inicio')">🏠 Inicio</a>
+          <a href="#" data-route="normas" onclick="go(null,'normas')">📋 Normas</a>
+          <a href="#" data-route="horarios" onclick="go(null,'horarios')">🗓️ Horarios</a>
+          <a href="#" data-route="miembros" onclick="go(null,'miembros')">👥 Miembros</a>
+          <a href="#" data-route="chat" onclick="go(null,'chat')">💬 Chat</a>
+          <a href="#" data-route="admin" id="nav-admin" hidden onclick="go(null,'admin')">🛡️ Admin</a>
         </nav>
         <div class="app-user">
           <span id="user-badge"></span>
