@@ -27,15 +27,49 @@ const CLUB = {
   whatsapp: "",
 };
 
-// Plantel inscrito del club (así se muestra en la sección Miembros).
-// Al recibir el listado real, reemplaza o completa estas fichas.
-// Campos: nombre, email, dorsal (número), posicion (texto), capitan (true/false), rol ("admin"|"member").
-const PLANTEL = [
-  { nombre: "Rodrigo Barriga", email: "rbarriga.pino@gmail.com", dorsal: 8, posicion: "Volante mixto", capitan: false, rol: "admin" },
-  { nombre: "Benjamín Barriga", email: "benja.barriga@gmail.com", dorsal: 5, posicion: "Central", capitan: true, rol: "member" },
-  { nombre: "Ignacio Bilbao", email: "ignacioandresmb10@gmail.com", dorsal: 10, posicion: "Mediapunta", capitan: false, rol: "member" },
-  { nombre: "Renato Barriga", email: "renato.barriga@gmail.com", dorsal: 7, posicion: "Extremo", capitan: false, rol: "member" },
-  { nombre: "Miembro de ejemplo", email: "demo@miembro.cl", dorsal: 21, posicion: "Arquero", capitan: false, rol: "member" },
+// Plantel con las poleras del equipo (se muestra en la sección Miembros).
+// nombre = texto en la camiseta · dorsal = número (o código de la polera) · posicion = "Jugador" | "Portero"
+const POLERAS = [
+  { nombre: "YIYO", dorsal: "18", posicion: "Jugador" },
+  { nombre: "JM PEÑALOZA", dorsal: "9", posicion: "Jugador" },
+  { nombre: "PRÍNCIPE MATEO", dorsal: "10-M", posicion: "Jugador" },
+  { nombre: "NANO", dorsal: "8", posicion: "Jugador" },
+  { nombre: "ROBERTO", dorsal: "17", posicion: "Jugador" },
+  { nombre: "BARRIGA", dorsal: "11", posicion: "Jugador" },
+  { nombre: "VENO EL COMANDANTE", dorsal: "73", posicion: "Jugador" },
+  { nombre: "MARTOO SEXY", dorsal: "30", posicion: "Jugador" },
+  { nombre: "LARVA", dorsal: "7", posicion: "Jugador" },
+  { nombre: "KIESSLING", dorsal: "898", posicion: "Jugador" },
+  { nombre: "I. BILBAO", dorsal: "92+", posicion: "Jugador" },
+  { nombre: "RENATO.S", dorsal: "91", posicion: "Jugador" },
+  { nombre: "MORY", dorsal: "5", posicion: "Jugador" },
+  { nombre: "PACHECO G", dorsal: "20", posicion: "Portero" },
+  { nombre: "ABC", dorsal: "13", posicion: "Jugador" },
+  { nombre: "TOMBARRI", dorsal: "26", posicion: "Jugador" },
+  { nombre: "LÓPEZ", dorsal: "23", posicion: "Jugador" },
+  { nombre: "JOFRE", dorsal: "35", posicion: "Jugador" },
+  { nombre: "SERÓN", dorsal: "6", posicion: "Jugador" },
+  { nombre: "BASTIAN IGNACIO", dorsal: "80", posicion: "Jugador" },
+  { nombre: "POLLO", dorsal: "999", posicion: "Jugador" },
+  { nombre: "DENIS", dorsal: "10", posicion: "Jugador" },
+  { nombre: "ANDRES", dorsal: "15", posicion: "Jugador" },
+  { nombre: "J.DIAZ ALISTE", dorsal: "1+8", posicion: "Jugador" },
+  { nombre: "DON ELÍAS", dorsal: "75", posicion: "Jugador" },
+  { nombre: "HISTÓRICO", dorsal: "47", posicion: "Jugador" },
+  { nombre: "JULIO", dorsal: "14", posicion: "Jugador" },
+  { nombre: "MAURI", dorsal: "22", posicion: "Jugador" },
+  { nombre: "SAAVEDRA", dorsal: "83", posicion: "Jugador" },
+  { nombre: "VASQUEZ", dorsal: "24", posicion: "Jugador" },
+  { nombre: "VITOCO", dorsal: "16", posicion: "Jugador" },
+  { nombre: "ZULETA", dorsal: "27", posicion: "Jugador" },
+  { nombre: "DANIS", dorsal: "31", posicion: "Jugador" },
+  { nombre: "ROBER", dorsal: "65", posicion: "Jugador" },
+  { nombre: "TRÍPODE", dorsal: "9+1", posicion: "Jugador" },
+  { nombre: "ZULETA", dorsal: "19", posicion: "Jugador" },
+  { nombre: "FRANCO", dorsal: "14", posicion: "Jugador" },
+  { nombre: "ANTONIO", dorsal: "7+1", posicion: "Jugador" },
+  { nombre: "JT PEÑALOZA", dorsal: "9", posicion: "Jugador" },
+  { nombre: "GALIASSI", dorsal: "77", posicion: "Jugador" },
 ];
 
 // Días y horarios de los partidos
