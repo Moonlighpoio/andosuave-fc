@@ -352,6 +352,15 @@ function renderChat() {
   <p class="chat-hint">Pregunta por: horarios, cuota, normas, redes, capitán…</p>`;
 }
 
+let __plantel = [];
+let __perfil = null;
+
+function abrirPerfil(i) {
+  if (!__plantel[i]) return;
+  __perfil = __plantel[i];
+  go(null, "perfil");
+}
+
 function renderMiembros() {
   const poleras = typeof POLERAS !== "undefined" && Array.isArray(POLERAS) ? POLERAS : [];
   const brand = String(CLUB.nombre).split(" ")[0].toUpperCase();
@@ -364,20 +373,22 @@ function renderMiembros() {
   nomAdmin.add(norm("AndoSuave Admin"));
 
   const lista = poleras.filter((p) => !p.admin && !nomAdmin.has(norm(p.nombre)));
+  __plantel = lista;
   const porteros = lista.filter(esPortero).length;
   const jugadores = lista.length - porteros;
 
-  const cards = lista.map((p) => {
+  const cards = lista.map((p, i) => {
     const dorsal = p.dorsal || "–";
     const po = esPortero(p);
     return `
-    <div class="member-card">
+    <div class="member-card" role="button" tabindex="0" onclick="abrirPerfil(${i})" onkeydown="if(event.key==='Enter')abrirPerfil(${i})" title="Ver perfil de ${esc(p.nombre)}">
       <div class="member-jersey${po ? " portero" : ""}">
         <span class="jersey-num">${esc(String(dorsal))}</span>
         <span class="jersey-brand">${esc(brand)}</span>
       </div>
       <div class="member-name">${p.nombre ? esc(p.nombre) : `Polera N° ${esc(String(dorsal))}`}</div>
       <span class="member-pos${po ? " portero" : ""}">${po ? "🧤 Portero" : "⚽ Jugador"}</span>
+      <span class="member-view">Ver ficha →</span>
     </div>`;
   }).join("");
 
@@ -392,6 +403,80 @@ function renderMiembros() {
   ${lista.length
     ? `<div class="member-grid">${cards}</div>`
     : `<p class="empty">Aún no hay poleras registradas.</p>`}`;
+}
+
+function renderPerfil(p) {
+  if (!p) { go(null, "miembros"); return ""; }
+  const brand = String(CLUB.nombre).split(" ")[0].toUpperCase();
+  const dorsal = p.dorsal || "–";
+  const po = /portero/i.test((p.posicion || "") + (p.camiseta || ""));
+
+  return `
+  <a class="perfil-back" onclick="go(event,'miembros')" href="#miembros">← Volver al plantel</a>
+  <div class="perfil-card">
+    <div class="perfil-jersey${po ? " portero" : ""}">
+      <span class="jersey-num">${esc(String(dorsal))}</span>
+      <span class="jersey-brand">${esc(brand)}</span>
+      <span class="perfil-medal">${po ? "🧤" : "⚽"}</span>
+    </div>
+    <h2 class="perfil-nombre">${esc(p.nombre)}</h2>
+    <span class="perfil-tag${po ? " portero" : ""}">${po ? "PORTERO DEL CLUB" : "JUGADOR DEL CLUB"}</span>
+    <ul class="perfil-info">
+      <li><span>Número de polera</span><b>${esc(String(dorsal))}</b></li>
+      <li><span>Posición</span><b>${esc(p.posicion || "Jugador")}</b></li>
+      <li><span>Equipo</span><b>${esc(CLUB.nombre)}</b></li>
+    </ul>
+    <p class="perfil-msg">${esc(p.frase || "Representa con orgullo la polera negra del club. Vamos por la victoria. 💪⚽")}</p>
+  </div>
+  <div class="perfil-nav">
+    <button class="btn btn-secondary" ${__plantel.indexOf(p) <= 0 ? "disabled" : ""} onclick="abrirPerfil(${__plantel.indexOf(p) - 1})">← Anterior</button>
+    <button class="btn btn-secondary" ${__plantel.indexOf(p) >= __plantel.length - 1 ? "disabled" : ""} onclick="abrirPerfil(${__plantel.indexOf(p) + 1})">Siguiente →</button>
+  </div>`;
+}
+
+async function renderMiPerfil() {
+  const ses = session();
+  if (!ses) { go(null, "inicio"); return ""; }
+  const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  let cuenta = null;
+  try {
+    const users = await listMembers();
+    if (users) cuenta = users.find((u) => norm(u.email) === norm(ses.email));
+  } catch (e) {}
+
+  const polera = typeof POLERAS !== "undefined" ? (POLERAS || []).find((p) => norm(p.nombre) === norm(ses.nombre)) : null;
+  const nombre = (cuenta && cuenta.nombre) || ses.nombre;
+  const email = (cuenta && cuenta.email) || ses.email || "—";
+  const rol = (cuenta && cuenta.role) || ses.role || "member";
+  const esAdmin = rol === "admin";
+
+  const dorsal = (polera && polera.dorsal) || (cuenta && cuenta.dorsal) || "–";
+  const posicion = (polera && polera.posicion) || (cuenta && cuenta.posicion) || "Jugador";
+  const po = /portero/i.test(posicion);
+  const brand = String(CLUB.nombre).split(" ")[0].toUpperCase();
+  const ingreso = cuenta ? new Date(cuenta.created_at || cuenta.createdAt).toLocaleDateString("es-CL") : null;
+
+  return `
+  <h1 class="page-title"><span class="title-ico">👤</span> Mi perfil</h1>
+  <p class="page-sub">Estos son tus datos de ${esc(CLUB.nombre)}.</p>
+  <div class="perfil-card">
+    <div class="perfil-jersey${po ? " portero" : ""}">
+      <span class="jersey-num">${esc(String(dorsal))}</span>
+      <span class="jersey-brand">${esc(brand)}</span>
+      <span class="perfil-medal">${po ? "🧤" : "⚽"}</span>
+    </div>
+    <h2 class="perfil-nombre">${esc(nombre)}</h2>
+    <span class="perfil-tag${esAdmin ? " admin" : po ? " portero" : ""}">${esAdmin ? "🛡️ ADMINISTRADOR" : po ? "PORTERO DEL CLUB" : "MIEMBRO DEL CLUB"}</span>
+    <ul class="perfil-info">
+      <li><span>Nombre</span><b>${esc(nombre)}</b></li>
+      <li><span>Correo</span><b>${esc(email)}</b></li>
+      <li><span>Número de polera</span><b>${esc(String(dorsal))}</b></li>
+      <li><span>Posición</span><b>${esc(posicion)}</b></li>
+      ${ingreso ? `<li><span>Ingreso al club</span><b>${esc(ingreso)}</b></li>` : ""}
+    </ul>
+    <p class="perfil-msg">${esAdmin ? "Eres parte de la administración. Gracias por mantener el club andando. ⚽🛡️" : "Representa con orgullo la polera negra del club. Vamos por la victoria. 💪⚽"}</p>
+  </div>`;
 }
 
 function renderFotos() {
@@ -503,6 +588,11 @@ function go(event, route) {
     renderAdmin().then((html) => { container.innerHTML = html; });
   } else if (route === "miembros") {
     container.innerHTML = renderMiembros();
+  } else if (route === "perfil") {
+    container.innerHTML = renderPerfil(__perfil);
+  } else if (route === "mip") {
+    container.innerHTML = '<p class="page-sub">Cargando tu perfil…</p>';
+    renderMiPerfil().then((html) => { container.innerHTML = html; });
   } else if (route === "salon") {
     container.innerHTML = renderSalon();
   } else if (route === "fotos") {
