@@ -19,7 +19,7 @@ const CLUB = {
   },
   directiva: {
     tesorero: "Ignacio Bilbao",
-    administradores: ["Rodrigo Barriga", "Benjamín Barriga"],
+    administradores: ["AndoSuave Admin", "Benjamín Barriga"],
   },
   // ÚNICO correo de administrador. Solo este podrá entrar al panel de gestión.
   adminEmail: "rbarriga.pino@gmail.com",
