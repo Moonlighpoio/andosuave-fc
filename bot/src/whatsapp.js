@@ -67,12 +67,15 @@ async function connect(ctx) {
   };
 
   const qrFile = path.join(sessionDir, "..", "qr.png");
+  const qrRunFile = path.join(sessionDir, "..", `qr-${Date.now()}.png`);
   const showQR = async (qr) => {
     console.log("\nEscanea este QR con el WhatsApp del número externo:");
     qrcodeTerminal.generate(qr, { small: true });
     try {
-      await QRCode.toFile(qrFile, qr, { width: 600, margin: 2 });
-      console.log("📷 QR guardado también en: " + qrFile + " (ábrelo y escanéalo con la cámara).");
+      const png = await QRCode.toBuffer(qr, { width: 600, margin: 2 });
+      fs.writeFileSync(qrRunFile, png);
+      fs.writeFileSync(qrFile, png);
+      console.log("📷 QR guardado en: " + qrRunFile + " (ábrelo y escanéalo con la cámara).");
     } catch (err) {
       console.error("No pude escribir el QR como imagen:", err.message);
     }
