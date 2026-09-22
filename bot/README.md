@@ -30,6 +30,7 @@ Bot de WhatsApp del club **AndoSuave FC**. Vive dentro del repositorio del sitio
 | `!horarios` | todos | Días, horas y canchas |
 | `!proximo` | todos | Próximo partido y cuántos van |
 | `!lista` / `!anotar` / `!salir` | todos | Lista de convocados |
+| `!convocatoria` | admin | Genera el mensaje de la próxima semana (fecha, cancha, link, lista nueva) |
 | `!cerrar` / `!abrir` / `!borrar-lista` | admin | Estado de la lista |
 | `!multas` | todos | Multas pendientes |
 | `!multa add <monto> <nombre> <motivo>` | admin | Registrar multa |
@@ -48,6 +49,7 @@ Bot de WhatsApp del club **AndoSuave FC**. Vive dentro del repositorio del sitio
 | Lunes y jueves 11:30 | "La convocatoria cierra a las 12:00" + lista actual |
 | Lunes y jueves 12:10 | Cierra la lista y publica los anotados |
 | Lunes y jueves 19:30 | "Partido hoy 20:00" + quiénes van |
+| Lunes y jueves 21:01 | **Convocatoria de la próxima semana**: fecha auto-calculada (ej. "Lunes 28/09"), cancha, link de ubicación y lista nueva (1-14 + banca). Crea el partido en la lista para `!anotar` |
 
 ## Probarlo en tu Mac (dentro del repo)
 

@@ -2,6 +2,7 @@ const { normalize, phoneFromJid, isAdmin, isGroup, formatCLP, parseMonto } = req
 const multas = require("./multas");
 const listas = require("./listas");
 const chat = require("./chat");
+const convocatoria = require("./convocatoria");
 const { Site } = require("./site");
 
 function extractText(msg) {
@@ -80,7 +81,8 @@ async function handle(box, msg) {
         "  · !lista — lista del próximo partido\n" +
         "  · !anotar — anótate (o !anotar <nombre>)\n" +
         "  · !salir — sálete de la lista\n" +
-        "  · !cerrar / !abrir / !borrar-lista (admin)\n\n" +
+        "  · !cerrar / !abrir / !borrar-lista (admin)\n" +
+        "  · !convocatoria (admin) — genera el mensaje de la próxima semana\n\n" +
         "⚽ *Info*\n" +
         "  · !horarios — días y canchas\n" +
         "  · !proximo — próximo partido y quién va\n" +
@@ -199,6 +201,30 @@ async function handle(box, msg) {
       if (!r.ok) { await reply(r.error); break; }
       box.store.save();
       await reply(`🗑️ Lista del ${match.dia} borrada (${r.cantidad} jugadores).`);
+      break;
+    }
+
+    case "convocatoria": {
+      if (!(await onlyAdmin())) break;
+      const next = convocatoria.nextSameDay(list);
+      if (!next) { await reply("Hoy no hay partido programado en los horarios."); break; }
+      const { entry, fecha } = next;
+      const fechaStr = [fecha.getFullYear(), String(fecha.getMonth() + 1).padStart(2, "0"), String(fecha.getDate()).padStart(2, "0")].join("-");
+      const data = box.store.get();
+      if (!data.partidos) data.partidos = {};
+      data.partidos[fechaStr] = {
+        fecha: fechaStr,
+        dia: entry.dia,
+        tipo: entry.tipo || "Partido",
+        hora: entry.hora,
+        lugar: entry.lugar,
+        direccion: entry.direccion,
+        mapa: entry.mapa,
+        cerrada: false,
+        jugadores: [],
+      };
+      box.store.save();
+      await reply(convocatoria.build(entry, fecha));
       break;
     }
 

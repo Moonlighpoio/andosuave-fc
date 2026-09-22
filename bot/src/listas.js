@@ -1,5 +1,12 @@
 const { normalize } = require("./helpers");
 
+function horaPasada(now, hora) {
+  const m = /(\d{1,2}):(\d{2})/.exec(hora || "");
+  if (!m) return false;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  return nowMin >= Number(m[1]) * 60 + Number(m[2]);
+}
+
 function nextMatch(horarios, now = new Date()) {
   const base = { Lunes: 1, Martes: 2, Miercoles: 3, Jueves: 4, Viernes: 5, Sabado: 6, Domingo: 0 };
   const dias = {};
@@ -8,10 +15,18 @@ function nextMatch(horarios, now = new Date()) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
     const dow = d.getDay();
     const entry = (horarios || []).find((h) => dias[normalize(h.dia)] === dow);
-    if (entry) {
-      const fecha = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
-      return { fecha, dia: entry.dia, tipo: entry.tipo || "Partido", hora: entry.hora, lugar: entry.lugar };
-    }
+    if (!entry) continue;
+    if (i === 0 && horaPasada(now, entry.hora)) continue;
+    const fecha = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+    return {
+      fecha,
+      dia: entry.dia,
+      tipo: entry.tipo || "Partido",
+      hora: entry.hora,
+      lugar: entry.lugar,
+      direccion: entry.direccion,
+      mapa: entry.mapa,
+    };
   }
   return null;
 }
@@ -34,6 +49,8 @@ function ensurePartido(data, match) {
   if (match.tipo && !p.tipo) p.tipo = match.tipo;
   if (match.hora && !p.hora) p.hora = match.hora;
   if (match.lugar && !p.lugar) p.lugar = match.lugar;
+  if (match.direccion && !p.direccion) p.direccion = match.direccion;
+  if (match.mapa && !p.mapa) p.mapa = match.mapa;
   return p;
 }
 
@@ -44,7 +61,8 @@ function get(data, fecha) {
 
 function listar(partido) {
   if (!partido) return { titulo: "", lineas: [] };
-  const titulo = `📋 Lista ${partido.dia} ${String(partido.fecha).slice(5).replace("-", "/")} · ${partido.hora}\n📍 ${partido.lugar}\n${partido.cerrada ? "🔒 CERRADA" : "🟢 ABIERTA (cierra 12:00 del día del partido)"}`;
+  const ubicacion = `${partido.lugar || ""}${partido.mapa ? "\n📍 " + partido.mapa : ""}`;
+  const titulo = `📋 Lista ${partido.dia} ${String(partido.fecha).slice(5).replace("-", "/")} · ${partido.hora}\n📍 ${ubicacion}\n${partido.cerrada ? "🔒 CERRADA" : "🟢 ABIERTA (cierra 12:00 del día del partido)"}`;
   const lineas = partido.jugadores.map((j, i) => `${i + 1}. ${j.nombre}`) || [];
   return { titulo, lineas };
 }

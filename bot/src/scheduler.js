@@ -1,6 +1,7 @@
 const cron = require("node-cron");
 const multas = require("./multas");
 const listas = require("./listas");
+const convocatoria = require("./convocatoria");
 
 let tasks = [];
 
@@ -58,7 +59,7 @@ function closetLista(box) {
 function start(box) {
   if (tasks.length) return;
 
-  const { multasMinute, multasHour, listaMinute, listaHour } = box.config.reminders;
+  const { multasMinute, multasHour, listaMinute, listaHour, convocaMinute, convocaHour } = box.config.reminders;
   const zona = { timezone: box.config.timezone };
 
   const add = (min, hora, day, fn) => {
@@ -75,7 +76,33 @@ function start(box) {
   });
   add(30, 19, "1,4", (b) => sendToGroup(b, buildListaMessage(b, "🏟️ *Partido hoy a las 20:00*")));
 
+  add(convocaMinute, convocaHour, "1,4", (b) => enviarConvocatoria(b));
+
   console.log("⏰ Recordatorios activados (" + box.config.timezone + ").");
+}
+
+function enviarConvocatoria(box) {
+  const { list } = horarios(box);
+  const next = convocatoria.nextSameDay(list);
+  if (!next) return;
+  const { entry, fecha } = next;
+  const fechaStr = [fecha.getFullYear(), String(fecha.getMonth() + 1).padStart(2, "0"), String(fecha.getDate()).padStart(2, "0")].join("-");
+  const data = box.store.get();
+  if (!data.partidos) data.partidos = {};
+  data.partidos[fechaStr] = {
+    fecha: fechaStr,
+    dia: entry.dia,
+    tipo: entry.tipo || "Partido",
+    hora: entry.hora,
+    lugar: entry.lugar,
+    direccion: entry.direccion,
+    mapa: entry.mapa,
+    cerrada: false,
+    jugadores: [],
+  };
+  box.store.save();
+  sendToGroup(box, convocatoria.build(entry, fecha));
+  console.log(`📣 Convocatoria enviada: ${entry.dia} ${convocatoria.formatDDMM(fecha)}`);
 }
 
 function stop() {
