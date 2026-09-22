@@ -78,7 +78,7 @@ function start(box) {
   add(30, 19, "1,4", (b) => sendToGroup(b, buildListaMessage(b, "🏟️ *Partido hoy a las 20:00*")));
 
   add(convocaMinute, convocaHour, "1,4", (b) => enviarConvocatoria(b));
-  add(finalMinute, finalHour, "1,4", (b) => enviarListaFinal(b));
+  add(finalMinute, finalHour, "*", (b) => enviarActualizacionLista(b));
 
   console.log("⏰ Recordatorios activados (" + box.config.timezone + ").");
 }
@@ -108,18 +108,21 @@ function enviarConvocatoria(box) {
   console.log(`📣 Convocatoria enviada: ${entry.dia} ${convocatoria.formatDDMM(fecha)}`);
 }
 
-function enviarListaFinal(box) {
-  const hoy = listas.partidoDeHoy(box.store.get());
-  if (!hoy) return;
-  const totales = (hoy.jugadores || []).length + (hoy.banca || []).length;
-  if (!totales) return;
-  const { lineas } = listas.listar(hoy);
+function enviarActualizacionLista(box) {
+  const data = box.store.get();
+  const hoy = listas.partidoDeHoy(data);
+  const match = hoy ? null : listas.nextMatch(horarios(box).list);
+  const target = hoy || (match && listas.ensurePartido(data, match));
+  if (!target) return;
+  const { lineas } = listas.listar(target);
+  const cuerpo =
+    lineas.length ? lineas.join("\n") : "Aún no hay anotados. Copia la convocatoria, escribe tu nombre y envíala.";
   sendToGroup(
     box,
-    `🌙 *Lista final del día* — ${hoy.dia} ${listas.ddmm(hoy.fecha)} · ${hoy.hora}\n\n` +
-      (lineas.length ? lineas.join("\n") : "Sin anotados.")
+    `📋 *Actualización de lista* — ${target.dia} ${listas.ddmm(target.fecha)} · ${target.hora}\n\n${cuerpo}`
   );
-  console.log(`🌙 Lista final enviada: ${totales} jugador(es).`);
+  if (target === hoy) box.store.save();
+  console.log(`📋 Actualización enviada: ${target.dia} ${target.fecha}.`);
 }
 
 function stop() {

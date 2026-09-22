@@ -51,7 +51,7 @@ Bot de WhatsApp del club **AndoSuave FC**. Vive dentro del repositorio del sitio
 | Lunes y jueves 19:30 | "Partido hoy 20:00" + quiénes van |
 | Lunes y jueves 21:01 | **Convocatoria de la próxima semana**: fecha auto-calculada (ej. "Lunes 28/09"), cancha, link de ubicación y lista nueva (1-14 + banca). Crea el partido en la lista para `!anotar` |
 | Al copiar la convocatoria | Si alguien copia el mensaje y le escribe su nombre (ej. "5- Pedro"), el bot lo **detecta y lo agrega a la lista** automáticamente |
-| Lunes y jueves 23:00 | **Lista final del día**: mensaje con todos los nombres que se escribieron copiando la convocatoria (con banca) |
+| Todos los días 23:59 | **Actualización de la lista**: mensaje con todos los nombres anotados hasta el momento (jugadores + banca) |
 
 ## Probarlo en tu Mac (dentro del repo)
 
