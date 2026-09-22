@@ -38,7 +38,7 @@ const POLERAS = [
   { nombre: "BARRIGA", dorsal: "11", posicion: "Jugador" },
   { nombre: "VENO EL COMANDANTE", dorsal: "73", posicion: "Jugador" },
   { nombre: "MARTOO SEXY", dorsal: "30", posicion: "Jugador" },
-  { nombre: "LARVA", dorsal: "7", posicion: "Jugador" },
+  { nombre: "LARVA", dorsal: "7", posicion: "Portero" },
   { nombre: "KIESSLING", dorsal: "898", posicion: "Jugador" },
   { nombre: "I. BILBAO", dorsal: "2+9", posicion: "Jugador" },
   { nombre: "RENATO.S", dorsal: "91", posicion: "Jugador" },
@@ -50,7 +50,7 @@ const POLERAS = [
   { nombre: "JOFRE", dorsal: "35", posicion: "Jugador" },
   { nombre: "SERÓN", dorsal: "6", posicion: "Jugador" },
   { nombre: "BASTIAN IGNACIO", dorsal: "80", posicion: "Jugador" },
-  { nombre: "POLLO", dorsal: "999", posicion: "Jugador" },
+  { nombre: "POLLO", dorsal: "999", posicion: "Portero" },
   { nombre: "DENIS", dorsal: "10", posicion: "Jugador" },
   { nombre: "ANDRES", dorsal: "15", posicion: "Jugador" },
   { nombre: "J.DIAZ ALISTE", dorsal: "1+8", posicion: "Jugador" },
@@ -264,6 +264,16 @@ const CHAT_REGLAS = [
     ],
   },
   {
+    palabras: ["buba", "tripode", "trípode", "adasme", "andy"],
+    respuestas: [
+      "¿Ese? Es EL jugador que siempre destaca… cuando no participa. 🤣🇨🇱",
+      "Ojo con él: rinde de otro nivel cuando se queda fuera del partido. La figura de la convocatoria, no de la cancha. 😂⚽",
+      "Buba, Trípode, Adasme y Andy tienen algo en común: siempre destacan… cuando no juegan. Puro talento de banca. 🤣🍟",
+      "El único que mete tres goles sin salir de la casa. Eso sí, si lo convocan, desaparece. 🇨🇱😂",
+      "Declarado por la directiva: 'jugador que siempre destaca cuando no participa'. Es parte del reglamento. 😎",
+    ],
+  },
+  {
     palabras: ["cancha", "arriendo", "arrienda", "departasport", "cordillera", "$3.000 de cancha"],
     respuestas: [
       `El arriendo de cancha cuesta ${CANCHA.monto} por partido. El valor puede cambiar con el tiempo y se avisa en el grupo de WhatsApp del club. 📍 El pago se hace por separado el mismo día del partido hasta las 23:59. No pagar a tiempo tiene multa de $3.000; si tampoco se paga al día siguiente, 2 fechas sin jugar.`,
@@ -345,6 +355,18 @@ const CHAT_FALLBACK = [
   "Buena pregunta. 🤔 Consulta el reglamento en la sección Normas o pregunta a la administración.",
   "No tengo esa respuesta aún. Revisa la sección Normas o consulta a la administración del club.",
   "Eso no lo tengo en mis datos. Intenta preguntar por horarios, cuota, bajas, atrasos o uniforme.",
+];
+
+// Galería de fotos del club (las imágenes viven en /fotos del proyecto).
+// Para agregar una foto: copia el archivo a la carpeta fotos/ y agrega aquí img + msg (mensaje motivador).
+const GALERIA = [
+  { img: "fotos/foto-1.jpg", msg: "La mejor cancha no está en el mapa… está donde juegan amigos. ⚽🤝" },
+];
+
+// Salón de la Fama: leyendas reconocidas del club
+const SALON_FAMA = [
+  { nombre: "ABC", dorsal: "13", motivo: "Trayectoria dentro y fuera de la cancha. Doble N° 13." },
+  { nombre: "TRÍPODE", dorsal: "9+1", motivo: "Entregó todo por el club y pasó a la historia. El 9+1 es eterno." },
 ];
 
 // ============================================================

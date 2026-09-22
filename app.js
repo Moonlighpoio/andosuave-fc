@@ -42,7 +42,6 @@ function normalize(str) {
 const DEMO_KEY = "club_futbol_usuarios";
 const SESSION_KEY = "club_futbol_sesion";
 const ADMIN_PASS_DEMO = "admin123";
-const MEMBER_PASS_DEMO = "demo123";
 
 function getUsers() {
   try { return JSON.parse(localStorage.getItem(DEMO_KEY)) || []; } catch { return []; }
@@ -91,7 +90,7 @@ function ensureDemoAdmin() {
   if (!users.some((u) => u.email.toLowerCase() === CLUB.adminEmail.toLowerCase())) {
     users.push({
       id: "u_admin",
-      nombre: "Administrador del club",
+      nombre: "AndoSuave Admin",
       email: CLUB.adminEmail,
       pass: "",
       role: "admin",
@@ -99,41 +98,7 @@ function ensureDemoAdmin() {
     });
     saveUsers(users);
   }
-  setSession({ nombre: "Administrador del club", email: CLUB.adminEmail, role: "admin" });
-}
-
-function ensureDemoMember() {
-  const miembro = typeof PLANTEL !== "undefined" && PLANTEL.find((m) => m.rol !== "admin") || null;
-  setSession({
-    nombre: miembro ? miembro.nombre : "Miembro de ejemplo",
-    email: miembro ? miembro.email : "demo@miembro.cl",
-    role: "member",
-  });
-}
-
-// Sincroniza el plantel del config con las cuentas locales del modo demo.
-async function seedPlantel() {
-  if (SUPABASE_CONFIGURADO) return;
-  if (typeof PLANTEL === "undefined" || !Array.isArray(PLANTEL)) return;
-  const users = getUsers();
-  let changed = false;
-  for (const m of PLANTEL) {
-    const email = m.email.toLowerCase();
-    if (users.some((u) => u.email.toLowerCase() === email)) continue;
-    users.push({
-      id: "u_" + email.replace(/[^a-z0-9]/g, "_"),
-      nombre: m.nombre,
-      email: m.email,
-      pass: await hashPass(MEMBER_PASS_DEMO),
-      role: m.rol || "member",
-      dorsal: m.dorsal,
-      posicion: m.posicion,
-      capitan: Boolean(m.capitan),
-      createdAt: new Date().toISOString(),
-    });
-    changed = true;
-  }
-  if (changed) saveUsers(users);
+  setSession({ nombre: "AndoSuave Admin", email: CLUB.adminEmail, role: "admin" });
 }
 
 // ============================================================
@@ -150,7 +115,7 @@ if (SUPABASE_CONFIGURADO) {
         role: getRole(session.user.email),
       });
     }
-seedPlantel().then(() => refresh());
+refresh();
   });
 }
 
@@ -299,6 +264,14 @@ function renderInicio(ses) {
       <div class="icon">👥</div>
       <h4>Miembros</h4><p>Conoce quiénes ya están inscritos en el club.</p>
     </div>
+    <div class="quick-card" onclick="go(event,'salon')">
+      <div class="icon">🏆</div>
+      <h4>Salón de la Fama</h4><p>Las leyendas del club pasan a la historia aquí.</p>
+    </div>
+    <div class="quick-card" onclick="go(event,'fotos')">
+      <div class="icon">📸</div>
+      <h4>Fotos del club</h4><p>Revive los mejores momentos dentro y fuera de la cancha.</p>
+    </div>
     ${esAdmin ? `<div class="quick-card" onclick="go(event,'admin')"><div class="icon">🛡️</div><h4>Panel Admin</h4><p>Gestiona los miembros registrados.</p></div>` : ""}
   </div>`;
 }
@@ -379,61 +352,78 @@ function renderChat() {
   <p class="chat-hint">Pregunta por: horarios, cuota, normas, redes, capitán…</p>`;
 }
 
-async function renderMiembros() {
-  let users;
-  try {
-    users = await listMembers();
-  } catch (err) {
-    toast("Error al cargar miembros: " + err.message, true);
-    return "";
-  }
-  if (!users) users = [];
+function renderMiembros() {
+  const poleras = typeof POLERAS !== "undefined" && Array.isArray(POLERAS) ? POLERAS : [];
+  const brand = String(CLUB.nombre).split(" ")[0].toUpperCase();
+  const esPortero = (p) => /portero/i.test((p.posicion || "") + (p.camiseta || ""));
 
-  const fmt = (d) => {
-    const t = new Date(d);
-    return isNaN(t) ? "-" : t.toLocaleDateString("es-CL");
-  };
-  const inits = (n) => String(n || "?").trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const porteros = poleras.filter(esPortero).length;
+  const jugadores = poleras.length - porteros;
 
-  const ordenados = [...users].sort((a, b) => {
-    if ((a.role === "admin") !== (b.role === "admin")) return a.role === "admin" ? -1 : 1;
-    if (Boolean(a.capitan) !== Boolean(b.capitan)) return a.capitan ? -1 : 1;
-    return new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0);
-  });
-
-  const admins = users.filter((u) => u.role === "admin").length;
-  const capitanes = users.filter((u) => u.capitan).length;
-
-  const card = (u) => {
-    const dorsal = u.dorsal ?? "";
-    const pos = u.posicion || u.position || "";
-    const tag = u.capitan ? "capitan" : u.role;
-    const label = u.capitan ? "⭐ Capitán" : u.role === "admin" ? "Admin" : "Miembro";
-    const num = dorsal !== "" ? esc(dorsal) : esc(inits(u.nombre || u.name));
+  const cards = poleras.map((p) => {
+    const dorsal = p.dorsal || "–";
+    const po = esPortero(p);
     return `
-      <div class="member-card${u.capitan ? " capitan" : ""}">
-        <div class="member-jersey">${num}</div>
-        ${pos ? `<span class="member-pos">${esc(pos)}</span>` : ""}
-        <span class="user-role ${tag}">${label}</span>
-        <div class="member-name">${esc(u.nombre || u.name)}</div>
-        <span class="member-mail">${esc(u.email)}</span>
-        <span class="member-since">desde ${fmt(u.created_at || u.createdAt)}</span>
-      </div>`;
-  };
-
-  const cards = ordenados.map(card).join("");
+    <div class="member-card">
+      <div class="member-jersey${po ? " portero" : ""}">
+        <span class="jersey-num">${esc(String(dorsal))}</span>
+        <span class="jersey-brand">${esc(brand)}</span>
+      </div>
+      <div class="member-name">${p.nombre ? esc(p.nombre) : `Polera N° ${esc(String(dorsal))}`}</div>
+      <span class="member-pos${po ? " portero" : ""}">${po ? "🧤 Portero" : "⚽ Jugador"}</span>
+    </div>`;
+  }).join("");
 
   return `
-  <h1 class="page-title"><span class="title-ico">👥</span> Miembros del club</h1>
-  <p class="page-sub">Estos son los inscritos de ${esc(CLUB.nombre)}. Sumamos buena onda dentro y fuera de la cancha.</p>
+  <h1 class="page-title"><span class="title-ico">👕</span> Plantel 2026</h1>
+  <p class="page-sub">Todos los inscritos de ${esc(CLUB.nombre)} con su polera negra y dorsal.</p>
   <div class="stat-grid">
-    <div class="stat"><div class="valor">${users.length}</div><div class="etiqueta">Inscritos</div></div>
-    <div class="stat"><div class="valor">${admins}</div><div class="etiqueta">Directiva</div></div>
-    <div class="stat"><div class="valor">${capitanes}</div><div class="etiqueta">Capitán(es)</div></div>
+    <div class="stat"><div class="valor">${poleras.length}</div><div class="etiqueta">Poleras</div></div>
+    <div class="stat"><div class="valor">${jugadores}</div><div class="etiqueta">Jugadores</div></div>
+    <div class="stat"><div class="valor">${porteros}</div><div class="etiqueta">Porteros</div></div>
   </div>
-  ${users.length
+  ${poleras.length
     ? `<div class="member-grid">${cards}</div>`
-    : `<p class="empty">Aún no hay miembros registrados.</p>`}`;
+    : `<p class="empty">Aún no hay poleras registradas.</p>`}`;
+}
+
+function renderFotos() {
+  const galeria = typeof GALERIA !== "undefined" && Array.isArray(GALERIA) ? GALERIA : [];
+
+  const items = galeria.map((f) => `
+    <figure class="foto-card">
+      <div class="foto-wrap">
+        <img class="foto-img" src="${esc(f.img)}" alt="Foto del club" loading="lazy" />
+      </div>
+      ${f.msg ? `<figcaption class="foto-msg">${esc(f.msg)}</figcaption>` : ""}
+    </figure>`).join("");
+
+  return `
+  <h1 class="page-title"><span class="title-ico">📸</span> Fotos del club</h1>
+  <p class="page-sub">Los mejores momentos de ${esc(CLUB.nombre)} dentro y fuera de la cancha.</p>
+  ${items.length
+    ? `<div class="foto-grid">${items}</div>`
+    : `<p class="empty">Aún no hay fotos. ¡La primera está en camino!</p>`}`;
+}
+
+function renderSalon() {
+  const leyendas = typeof SALON_FAMA !== "undefined" && Array.isArray(SALON_FAMA) ? SALON_FAMA : [];
+  const medallas = ["🥇", "🥈", "🥉"];
+
+  const cards = leyendas.map((l, i) => `
+    <div class="hof-card">
+      <div class="hof-medal">${medallas[i] || "🏅"}</div>
+      <div class="hof-jersey"><span class="jersey-num">${esc(String(l.dorsal))}</span></div>
+      <div class="hof-name">${esc(l.nombre)}</div>
+      ${l.motivo ? `<p class="hof-motivo">${esc(l.motivo)}</p>` : ""}
+    </div>`).join("");
+
+  return `
+  <h1 class="page-title"><span class="title-ico">🏆</span> Salón de la Fama</h1>
+  <p class="page-sub">Las leyendas que pasaron a la historia de ${esc(CLUB.nombre)}.</p>
+  ${leyendas.length
+    ? `<div class="hof-grid">${cards}</div>`
+    : `<p class="empty">El Salón de la Fama aún está por inaugurarse.</p>`}`;
 }
 
 async function renderAdmin() {
@@ -505,8 +495,11 @@ function go(event, route) {
     container.innerHTML = '<p class="page-sub">Cargando miembros…</p>';
     renderAdmin().then((html) => { container.innerHTML = html; });
   } else if (route === "miembros") {
-    container.innerHTML = '<p class="page-sub">Cargando miembros…</p>';
-    renderMiembros().then((html) => { container.innerHTML = html; });
+    container.innerHTML = renderMiembros();
+  } else if (route === "salon") {
+    container.innerHTML = renderSalon();
+  } else if (route === "fotos") {
+    container.innerHTML = renderFotos();
   } else container.innerHTML = renderInicio(ses);
 }
 
@@ -643,7 +636,6 @@ function refresh() {
 $("login-form").addEventListener("submit", onLogin);
 $("register-form").addEventListener("submit", onRegister);
 $("btn-demo-admin").addEventListener("click", () => { ensureDemoAdmin(); refresh(); });
-$("btn-demo-miembro").addEventListener("click", () => { ensureDemoMember(); refresh(); });
 
 // Menú hamburguesa (móviles)
 $("nav-toggle").addEventListener("click", () => {
