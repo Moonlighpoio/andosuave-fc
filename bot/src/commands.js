@@ -61,12 +61,11 @@ async function handle(box, msg) {
       console.error("Error al enviar:", err.message);
     }
   };
-  const onlyAdmin = async (out) => {
-    if (!admin) {
-      await reply("🔒 Solo la administración puede usar ese comando.");
-      return false;
-    }
-    return true;
+  const onlyAdmin = async () => {
+    if (admin) return true;
+    if (!config.adminNumbers.length) return false;
+    await reply("🔒 Solo la administración puede usar ese comando.");
+    return false;
   };
 
   const { list } = horarios(box);

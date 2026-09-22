@@ -56,7 +56,8 @@ Bot de WhatsApp del club **AndoSuave FC**. Vive dentro del repositorio del sitio
 ```bash
 cd bot
 cp .env.example .env
-# edita .env: ADMIN_NUMBERS=569XXXX (tu número admin), DATA_DIR=bot/data, SITE_DIR=..
+# edita .env: ADMIN_NUMBERS=569XXXX (tu número admin — si va vacío, el bot solo
+# funciona automático: ignora comandos admin y solo envía recordatorios por horario), DATA_DIR=bot/data, SITE_DIR=..
 npm install
 npm start
 ```
