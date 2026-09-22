@@ -40,7 +40,7 @@ const POLERAS = [
   { nombre: "MARTOO SEXY", dorsal: "30", posicion: "Jugador" },
   { nombre: "LARVA", dorsal: "7", posicion: "Jugador" },
   { nombre: "KIESSLING", dorsal: "898", posicion: "Jugador" },
-  { nombre: "I. BILBAO", dorsal: "92+", posicion: "Jugador" },
+  { nombre: "I. BILBAO", dorsal: "2+9", posicion: "Jugador" },
   { nombre: "RENATO.S", dorsal: "91", posicion: "Jugador" },
   { nombre: "MORY", dorsal: "5", posicion: "Jugador" },
   { nombre: "PACHECO G", dorsal: "20", posicion: "Portero" },
