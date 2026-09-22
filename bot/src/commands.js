@@ -33,7 +33,9 @@ async function handle(box, msg) {
   const jid = msg.key.remoteJid;
 
   if (!text.startsWith(config.prefix)) {
-    if (isGroup(jid) && config.groupId && jid === config.groupId) await harvest.capture(box, text);
+    const inGroup = isGroup(jid) && config.groupId && jid === config.groupId;
+    const inDm = !isGroup(jid);
+    if (inGroup || inDm) await harvest.capture(box, text);
     return false;
   }
 
