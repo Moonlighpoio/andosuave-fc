@@ -59,10 +59,15 @@ function get(data, fecha) {
   return data.partidos[fecha] || null;
 }
 
+function ddmm(fecha) {
+  const f = String(fecha || "");
+  return f.slice(8, 10) + "/" + f.slice(5, 7);
+}
+
 function listar(partido) {
   if (!partido) return { titulo: "", lineas: [] };
   const ubicacion = `${partido.lugar || ""}${partido.mapa ? "\n📍 " + partido.mapa : ""}`;
-  const titulo = `📋 Lista ${partido.dia} ${String(partido.fecha).slice(5).replace("-", "/")} · ${partido.hora}\n📍 ${ubicacion}\n${partido.cerrada ? "🔒 CERRADA" : "🟢 ABIERTA (cierra 12:00 del día del partido)"}`;
+  const titulo = `📋 Lista ${partido.dia} ${ddmm(partido.fecha)} · ${partido.hora}\n📍 ${ubicacion}\n${partido.cerrada ? "🔒 CERRADA" : "🟢 ABIERTA (cierra 12:00 del día del partido)"}`;
   const lineas = (partido.jugadores || []).map((j, i) => `${i + 1}. ${j.nombre}`);
   const banca = partido.banca || [];
   if (banca.length) lineas.push("Banca", ...banca.map((n, i) => `${i + 1}. ${n}`));
@@ -129,4 +134,4 @@ function borrar(data, fecha) {
   return { ok: true, cantidad: n };
 }
 
-module.exports = { nextMatch, ensurePartido, get, listar, anotar, salir, cerrar, abrir, borrar, partidoDeHoy };
+module.exports = { nextMatch, ensurePartido, get, listar, anotar, salir, cerrar, abrir, borrar, partidoDeHoy, ddmm };

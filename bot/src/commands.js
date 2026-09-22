@@ -133,7 +133,7 @@ async function handle(box, msg) {
       const p = listas.get(box.store.get(), match.fecha);
       const cuantos = p ? p.jugadores.length : 0;
       await reply(
-        `⚽ *Próximo partido*\n${match.tipo} ${match.dia} (${match.fecha}) · ${match.hora}\n📍 ${match.lugar}\n👥 Anotados: ${cuantos}${match.cerrada ? " · 🔒 cerrada" : ""}`
+        `⚽ *Próximo partido*\n${match.tipo} ${match.dia} (${listas.ddmm(match.fecha)}) · ${match.hora}\n📍 ${match.lugar}\n👥 Anotados: ${cuantos}${match.cerrada ? " · 🔒 cerrada" : ""}`
       );
       break;
     }

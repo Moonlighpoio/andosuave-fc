@@ -31,7 +31,7 @@ function buildListaMessage(box, accion) {
   const nombres = p?.jugadores?.map((j, i) => `${i + 1}. ${j.nombre}`) || [];
   const banca = p?.banca?.length ? "\nBanca: " + p.banca.join(", ") : "";
   const cuerpo =
-    `${match.tipo} ${match.dia} (${match.fecha}) · ${match.hora}\n📍 ${match.lugar}\n\n` +
+    `${match.tipo} ${match.dia} (${listas.ddmm(match.fecha)}) · ${match.hora}\n📍 ${match.lugar}\n\n` +
     (nombres.length ? "Anotados:\n" + nombres.join("\n") + banca : "Aún no hay anotados. ¡Anótate con *!anotar*!");
   return accion + "\n\n" + cuerpo;
 }
@@ -116,7 +116,7 @@ function enviarListaFinal(box) {
   const { lineas } = listas.listar(hoy);
   sendToGroup(
     box,
-    `🌙 *Lista final del día* — ${hoy.dia} ${String(hoy.fecha).slice(5).replace("-", "/")} · ${hoy.hora}\n\n` +
+    `🌙 *Lista final del día* — ${hoy.dia} ${listas.ddmm(hoy.fecha)} · ${hoy.hora}\n\n` +
       (lineas.length ? lineas.join("\n") : "Sin anotados.")
   );
   console.log(`🌙 Lista final enviada: ${totales} jugador(es).`);
