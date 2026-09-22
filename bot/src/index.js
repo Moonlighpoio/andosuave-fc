@@ -74,9 +74,9 @@ async function main() {
       box.sock = sock;
       if (!started) {
         started = true;
-        scheduler.start(box);
+        setTimeout(() => scheduler.start(box), 15000);
       }
-      setTimeout(() => void autoDetectGroup(sock), 6000);
+      setTimeout(() => void autoDetectGroup(sock), 20000);
       if (process.env.TEST_SEND_TO) {
         const to = process.env.TEST_SEND_TO.replace(/\D/g, "");
         const text = process.env.TEST_SEND_TEXT || "Prueba del bot AndoSuave FC ✓";
@@ -88,7 +88,7 @@ async function main() {
             console.error("No pude enviar mensaje de prueba:", err.message);
           }
           delete process.env.TEST_SEND_TO;
-        }, 3000);
+        }, 15000);
       }
     },
     onMessage: async (msg, sock) => {
