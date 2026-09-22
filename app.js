@@ -240,6 +240,7 @@ const session = () => getSession();
 
 function renderInicio(ses) {
   const esAdmin = ses.role === "admin";
+  const prox = typeof HORARIOS !== "undefined" && HORARIOS[0];
   return `
   <div class="hero-club">
     <span class="hero-crest"><img class="hero-img" src="${esc(CLUB.logo)}" alt="Escudo de ${esc(CLUB.nombre)}"/></span>
@@ -247,22 +248,24 @@ function renderInicio(ses) {
     <span class="role-tag">${esAdmin ? "Administrador del club" : "Miembro"}</span>
     <p class="page-sub">Bienvenido a la zona de miembros de <strong>${esc(CLUB.nombre)}</strong>. Aquí están las normas, los horarios y el asistente del club.</p>
   </div>
+  ${prox ? `<div id="next-match" class="next-match-wrap"></div>` : ""}
   <div class="quick-grid">
+    <div class="quick-card featured" onclick="go(event,'horarios')">
+      <span class="featured-badge">🔝 Lo más visto</span>
+      <div class="icon">🗓️</div>
+      <h4>Horarios</h4><p>Días, horas y canchas de juegos y entrenamientos.</p>
+    </div>
     <div class="quick-card" onclick="go(event,'normas')">
       <div class="icon">📋</div>
       <h4>Normas</h4><p>Revisa las reglas del club para todos los miembros.</p>
     </div>
-    <div class="quick-card" onclick="go(event,'horarios')">
-      <div class="icon">🗓️</div>
-      <h4>Horarios</h4><p>Días, horas y canchas de juegos y entrenamientos.</p>
+    <div class="quick-card" onclick="go(event,'miembros')">
+      <div class="icon">👥</div>
+      <h4>Miembros</h4><p>Conoce quiénes ya están inscritos en el club.</p>
     </div>
     <div class="quick-card" onclick="go(event,'chat')">
       <div class="icon">💬</div>
       <h4>Chat del club</h4><p>Pregúntale al asistente por horarios, cuotas y más.</p>
-    </div>
-    <div class="quick-card" onclick="go(event,'miembros')">
-      <div class="icon">👥</div>
-      <h4>Miembros</h4><p>Conoce quiénes ya están inscritos en el club.</p>
     </div>
     <div class="quick-card" onclick="go(event,'salon')">
       <div class="icon">🏆</div>
@@ -272,8 +275,68 @@ function renderInicio(ses) {
       <div class="icon">📸</div>
       <h4>Fotos del club</h4><p>Revive los mejores momentos dentro y fuera de la cancha.</p>
     </div>
-    ${esAdmin ? `<div class="quick-card" onclick="go(event,'admin')"><div class="icon">🛡️</div><h4>Panel Admin</h4><p>Gestiona los miembros registrados.</p></div>` : ""}
-  </div>`;
+  </div>
+  ${esAdmin ? `<a class="quick-home-admin" onclick="go(event,'admin')"><span class="icon">🛡️</span><span class="t">Panel de administración</span><span class="s">Gestiona los miembros registrados</span><span class="go">→</span></a>` : ""}`;
+}
+
+const DIANUM = { domingo: 0, lunes: 1, martes: 2, miercoles: 3, jueves: 4, viernes: 5, sabado: 6 };
+const DIAS_NOM = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+let __timerMatch = null;
+
+function sigMatchDetalle(h) {
+  const ahora = new Date();
+  const dh = DIANUM[("" + h.dia).toLowerCase()];
+  const [hh, mm] = String(h.hora || "20:00").split("–")[0].trim().split(":").map(Number);
+  const make = (diff) => {
+    const d = new Date(ahora);
+    d.setDate(ahora.getDate() + diff);
+    d.setHours(hh, mm, 0, 0);
+    return d;
+  };
+  let diff = (dh - ahora.getDay() + 7) % 7;
+  let inicio = make(diff);
+  const fin = new Date(inicio);
+  fin.setHours(hh + 1, mm, 0, 0);
+  const jugando = ahora >= inicio && ahora < fin;
+  if (!jugando && inicio <= ahora) inicio = make(diff + 7);
+  return { h, inicio, jugando };
+}
+
+function proximoHorario() {
+  if (typeof HORARIOS === "undefined" || !HORARIOS.length) return null;
+  return HORARIOS.map(sigMatchDetalle).sort((a, b) => (a.jugando ? a.inicio - 1 : a.inicio) - (b.jugando ? b.inicio - 1 : b.inicio))[0];
+}
+
+function etiquetaMatch(m) {
+  if (m.jugando) return "¡Jugando ahora!";
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const dia = new Date(m.inicio);
+  dia.setHours(0, 0, 0, 0);
+  const gap = Math.round((dia - hoy) / 86400000);
+  if (gap === 0) return "Hoy";
+  if (gap === 1) return "Mañana";
+  return `${DIAS_NOM[m.inicio.getDay()]} ${m.inicio.getDate()}/${m.inicio.getMonth() + 1}`;
+}
+
+function refreshNextMatch() {
+  const wrap = document.getElementById("next-match");
+  if (!wrap) return;
+  const prox = proximoHorario();
+  if (!prox) { wrap.innerHTML = ""; return; }
+  const h = prox.h;
+  wrap.innerHTML = `
+  <a class="next-match${prox.jugando ? " jugando" : ""}" href="${esc(h.mapa || "#")}" target="_blank" rel="noopener">
+    <span class="next-ico ${prox.jugando ? "pulse" : ""}">${prox.jugando ? "🔴" : "📅"}</span>
+    <div class="next-info">
+      <strong>${prox.jugando ? "¡Jugando ahora!" : "Próximo partido"}</strong>
+      <span>${esc(h.dia)} · ${esc(h.hora)} · ${esc(h.lugar)}</span>
+      <span class="next-cuenta">${prox.jugando ? "Termina a las " + esc(h.hora.split("–")[1] || "21:00") : esc(etiquetaMatch(prox)) + " · " + esc(h.hora)}</span>
+    </div>
+    <span class="map-btn">🗺️ Cómo llegar</span>
+  </a>`;
+  clearTimeout(__timerMatch);
+  __timerMatch = setTimeout(refreshNextMatch, 30000);
 }
 
 function setEscudo(el) {
@@ -598,6 +661,7 @@ function go(event, route) {
   } else if (route === "fotos") {
     container.innerHTML = renderFotos();
   } else container.innerHTML = renderInicio(ses);
+  if (route === "inicio") refreshNextMatch();
 }
 
 // ============================================================
