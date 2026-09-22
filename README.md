@@ -14,6 +14,7 @@ Sitio del club de fútbol AndoSuave FC: portada pública, zona de miembros
 | `logo.jpg` | Logo del equipo |
 | `supabase/schema.sql` | Esquema de la base de datos (ejecutar en Supabase) |
 | `supabase/functions/delete-member/` | Edge Function para la baja real de miembros |
+| `bot/` | **Bot de WhatsApp del club** (misma fuente de datos en `config.js`) |
 
 ## Modos de funcionamiento
 
@@ -70,6 +71,13 @@ git add -A && git commit -m "AndoSuave FC"
 gh repo create andosuave-fc --public --source=. --push
 ```
 Luego en GitHub: **repo → Settings → Pages → branch `main`** (o vía API/gh).
+
+## Bot de WhatsApp
+
+El asistente que ves en el el chat también responde por WhatsApp
+(`!consulta <pregunta>` o escribiendo la pregunta directamente). El bot vive en
+`bot/`, reutiliza los datos de `config.js` (horarios, cuota, reglamento, chat) y
+puede actualizar la página desde WhatsApp. Ver `bot/README.md`.
 
 ## Seguridad (importante)
 - La **clave anónima** es pública por diseño; la seguridad la dan las políticas

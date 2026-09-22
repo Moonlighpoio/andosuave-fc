@@ -1,0 +1,7 @@
+# Dependencias y estado en runtime (nunca subir)
+node_modules/
+.env
+data/
+*.log
+qr.png
+.DS_Store
