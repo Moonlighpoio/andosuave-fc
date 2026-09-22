@@ -356,11 +356,18 @@ function renderMiembros() {
   const poleras = typeof POLERAS !== "undefined" && Array.isArray(POLERAS) ? POLERAS : [];
   const brand = String(CLUB.nombre).split(" ")[0].toUpperCase();
   const esPortero = (p) => /portero/i.test((p.posicion || "") + (p.camiseta || ""));
+  const norm = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-  const porteros = poleras.filter(esPortero).length;
-  const jugadores = poleras.length - porteros;
+  const nomAdmin = new Set(
+    ((CLUB.directiva && CLUB.directiva.administradores) || []).map((n) => norm(n))
+  );
+  nomAdmin.add(norm("AndoSuave Admin"));
 
-  const cards = poleras.map((p) => {
+  const lista = poleras.filter((p) => !p.admin && !nomAdmin.has(norm(p.nombre)));
+  const porteros = lista.filter(esPortero).length;
+  const jugadores = lista.length - porteros;
+
+  const cards = lista.map((p) => {
     const dorsal = p.dorsal || "–";
     const po = esPortero(p);
     return `
@@ -378,11 +385,11 @@ function renderMiembros() {
   <h1 class="page-title"><span class="title-ico">👕</span> Plantel 2026</h1>
   <p class="page-sub">Todos los inscritos de ${esc(CLUB.nombre)} con su polera negra y dorsal.</p>
   <div class="stat-grid">
-    <div class="stat"><div class="valor">${poleras.length}</div><div class="etiqueta">Poleras</div></div>
+    <div class="stat"><div class="valor">${lista.length}</div><div class="etiqueta">Inscritos</div></div>
     <div class="stat"><div class="valor">${jugadores}</div><div class="etiqueta">Jugadores</div></div>
     <div class="stat"><div class="valor">${porteros}</div><div class="etiqueta">Porteros</div></div>
   </div>
-  ${poleras.length
+  ${lista.length
     ? `<div class="member-grid">${cards}</div>`
     : `<p class="empty">Aún no hay poleras registradas.</p>`}`;
 }
