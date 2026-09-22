@@ -34,6 +34,19 @@ async function main() {
         started = true;
         scheduler.start(box);
       }
+      if (process.env.TEST_SEND_TO) {
+        const to = process.env.TEST_SEND_TO.replace(/\D/g, "");
+        const text = process.env.TEST_SEND_TEXT || "Prueba del bot AndoSuave FC ✓";
+        setTimeout(async () => {
+          try {
+            await sock.sendMessage(to + "@s.whatsapp.net", { text });
+            console.log("✅ Mensaje de prueba enviado a " + to);
+          } catch (err) {
+            console.error("No pude enviar mensaje de prueba:", err.message);
+          }
+          delete process.env.TEST_SEND_TO;
+        }, 3000);
+      }
     },
     onMessage: async (msg, sock) => {
       box.sock = sock;
